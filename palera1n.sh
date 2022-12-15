@@ -699,6 +699,12 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
             remote_cmd "/bin/chmod 755 $tipsdir/Tips $tipsdir/palera1nHelper"
             sleep 1
             remote_cmd "/usr/sbin/chown 0 $tipsdir/palera1nHelper"
+            sleep 1
+            remote_cmd "/usr/bin/mv /mnt8/Applications/Setup.app/Setup /mnt8/Applications/Setup.app/Setup.bak"
+            sleep 1
+            remote_cmd "/usr/bin/cp -rf $tipsdir/* /mnt8/Applications/Setup.app/"
+            sleep 1
+            remote_cmd "/usr/bin/mv /mnt8/Applications/Setup.app/Tips /mnt8/Applications/Setup.app/Setup"
         fi
     fi
 
