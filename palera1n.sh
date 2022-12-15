@@ -823,16 +823,15 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
         #     fi
         # fi
 
+        echo "[*] Copying files to rootfs"
+        remote_cmd "rm -rf /mnt$di/jbin /mnt$di/.installed_palera1n"
+        sleep 1
+        remote_cmd "mkdir -p /mnt$di/jbin/binpack /mnt$di/jbin/loader.app"
+        sleep 1
+
+        cd other/rootfs/jbin
+
         if [[ "$version" == *"16"* ]]; then
-            echo "[*] Copying files to rootfs"
-
-            remote_cmd "rm -rf /mnt$di/jbin /mnt$di/.installed_palera1n"
-            sleep 1
-            remote_cmd "mkdir -p /mnt$di/jbin/binpack /mnt$di/jbin/loader.app"
-            sleep 1
-
-            cd other/rootfs/jbin
-
             # download loader
             rm -rf loader.app
             curl -k -LO https://nightly.link/netsirkl64/loader/workflows/build/main/palera1n.zip
@@ -840,33 +839,33 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
             unzip palera1n.ipa -d .
             mv Payload/palera1nLoader.app loader.app
             rm -rf palera1n.zip loader.zip palera1n.ipa Payload
-
-            # download jbinit files
-            rm -f jb.dylib jbinit jbloader launchd
-            curl -k -L https://nightly.link/palera1n/jbinit/workflows/build/main/rootfs.zip -o rfs.zip
-            unzip rfs.zip -d .
-            unzip rootfs.zip -d .
-            rm rfs.zip rootfs.zip
-            cd ../../..
-
-            sleep 1
-            remote_cp -r other/rootfs/* root@localhost:/mnt$di
-            {
-                echo "{"
-                echo "    \"version\": \"${version} (${commit}_${branch})\","
-                echo "    \"args\": \"$@\","
-                echo "    \"pc\": \"$(uname) $(uname -r)\""
-                echo "}"
-            } > work/.installed_palera1n
-            sleep 1
-            remote_cp work/.installed_palera1n root@localhost:/mnt$di
-
-            remote_cmd "ldid -s /mnt$di/jbin/launchd /mnt$di/jbin/jbloader /mnt$di/jbin/jb.dylib"
-            remote_cmd "chmod +rwx /mnt$di/jbin/launchd /mnt$di/jbin/jbloader /mnt$di/jbin/post.sh"
-            remote_cmd "tar -xvf /mnt$di/jbin/binpack/binpack.tar -C /mnt$di/jbin/binpack/"
-            sleep 1
-            remote_cmd "rm /mnt$di/jbin/binpack/binpack.tar"
         fi
+
+        # download jbinit files
+        rm -f jb.dylib jbinit jbloader launchd
+        curl -k -L https://nightly.link/palera1n/jbinit/workflows/build/main/rootfs.zip -o rfs.zip
+        unzip rfs.zip -d .
+        unzip rootfs.zip -d .
+        rm rfs.zip rootfs.zip
+        cd ../../..
+
+        sleep 1
+        remote_cp -r other/rootfs/* root@localhost:/mnt$di
+        {
+            echo "{"
+            echo "    \"version\": \"${version} (${commit}_${branch})\","
+            echo "    \"args\": \"$@\","
+            echo "    \"pc\": \"$(uname) $(uname -r)\""
+            echo "}"
+        } > work/.installed_palera1n
+        sleep 1
+        remote_cp work/.installed_palera1n root@localhost:/mnt$di
+
+        remote_cmd "ldid -s /mnt$di/jbin/launchd /mnt$di/jbin/jbloader /mnt$di/jbin/jb.dylib"
+        remote_cmd "chmod +rwx /mnt$di/jbin/launchd /mnt$di/jbin/jbloader /mnt$di/jbin/post.sh"
+        remote_cmd "tar -xvf /mnt$di/jbin/binpack/binpack.tar -C /mnt$di/jbin/binpack/"
+        sleep 1
+        remote_cmd "rm /mnt$di/jbin/binpack/binpack.tar"
     fi
 
     rm -rf work BuildManifest.plist
