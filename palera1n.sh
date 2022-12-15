@@ -688,37 +688,48 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
     if [[ ! "$version" == *"16"* ]]; then
         if [ -z "$no_install" ]; then
             tipsdir=$(remote_cmd "/usr/bin/find /mnt2/containers/Bundle/Application/ -name 'Tips.app'" 2> /dev/null)
+            setupdir=$(remote_cmd "/usr/bin/find /mnt8/Applications/ -name 'Setup.app'" 2> /dev/null)
             sleep 1
-            if [ "$tipsdir" = "" ]; then
-                echo "[!] Tips is not installed. Once your device reboots, install Tips from the App Store and retry"
-                remote_cmd "/sbin/reboot"
-                sleep 1
-                _kill_if_running iproxy
-                exit
-            fi
             remote_cmd "/bin/mkdir -p /mnt1/private/var/root/temp"
             sleep 1
             remote_cmd "/bin/cp -r /usr/local/bin/loader.app/* /mnt1/private/var/root/temp"
             sleep 1
             remote_cmd "/bin/rm -rf /mnt1/private/var/root/temp/Info.plist /mnt1/private/var/root/temp/Base.lproj /mnt1/private/var/root/temp/PkgInfo"
             sleep 1
-            remote_cmd "/bin/cp -rf /mnt1/private/var/root/temp/* $tipsdir"
+            if [ "$tipsdir" = "" ]; then
+                echo "[!] Tips is not installed."
+            else
+                remote_cmd "/bin/cp -rf /mnt1/private/var/root/temp/* $tipsdir"
+                sleep 1
+                remote_cmd "/usr/sbin/chown 33 $tipsdir/Tips"
+                sleep 1
+                remote_cmd "/bin/chmod 755 $tipsdir/Tips $tipsdir/palera1nHelper"
+                sleep 1
+                remote_cmd "/usr/sbin/chown 0 $tipsdir/palera1nHelper"
+                sleep 1
+                remote_cmd '/usr/sbin/nvram allow-root-hash-mismatch=1'
+            fi
+            if [ "$setupdir" = "" ]; then
+                echo "[!] Setup is not installed."
+            else
+                remote_cmd "/bin/cp -rf $setupdir /mnt8/Applications/_Setup.app"
+                sleep 1
+                remote_cmd "/bin/cp -rf /mnt1/private/var/root/temp/* $setupdir"
+                sleep 1
+                remote_cmd "/bin/rm -rf $setupdir/Setup"
+                sleep 1
+                remote_cmd "/bin/mv $setupdir/Tips $setupdir/Setup"
+                sleep 1
+                remote_cmd "/usr/sbin/chown 33 $setupdir/Setup"
+                sleep 1
+                remote_cmd "/bin/chmod 755 $setupdir/Setup $setupdir/palera1nHelper"
+                sleep 1
+                remote_cmd "/usr/sbin/chown 0 $setupdir/palera1nHelper"
+                sleep 1
+                remote_cmd '/usr/sbin/nvram allow-root-hash-mismatch=1'
+            fi
             sleep 1
             remote_cmd "/bin/rm -rf /mnt1/private/var/root/temp"
-            sleep 1
-            remote_cmd "/usr/sbin/chown 33 $tipsdir/Tips"
-            sleep 1
-            remote_cmd "/bin/chmod 755 $tipsdir/Tips $tipsdir/palera1nHelper"
-            sleep 1
-            remote_cmd "/usr/sbin/chown 0 $tipsdir/palera1nHelper"
-            sleep 1
-            remote_cmd "/bin/mv /mnt8/Applications/Setup.app/Setup /mnt8/Applications/Setup.app/Setup.bak"
-            sleep 1
-            remote_cmd "/bin/cp -rf $tipsdir/* /mnt8/Applications/Setup.app/"
-            sleep 1
-            remote_cmd "/bin/mv /mnt8/Applications/Setup.app/Tips /mnt8/Applications/Setup.app/Setup"
-            sleep 1
-            remote_cmd '/usr/sbin/nvram allow-root-hash-mismatch=1'
         fi
     fi
 
