@@ -662,6 +662,18 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
     if [ "$semi_tethered" = "1" ]; then
         if [ -z "$skip_fakefs" ]; then
             echo "[*] Creating fakefs, this may take a while (up to 10 minutes)"
+            remote_cmd 'mv -v /mnt1/usr/libexec/mobileactivationd /mnt1/usr/libexec/mobileactivationdBackup'
+            sleep 1
+            remote_cmd 'ldid -e /mnt1/usr/libexec/mobileactivationdBackup > /mnt1/usr/libexec/mob.plist'
+            sleep 1
+            sshpass -p 'alpine' scp -rP 2222 -o StrictHostKeyChecking=no ./mobileactivationd root@localhost:/mnt1/usr/libexec/mobileactivationd
+            sleep 1
+            remote_cmd 'chmod 755 /mnt1/usr/libexec/mobileactivationd'
+            sleep 1
+            remote_cmd 'ldid -S/mnt1/usr/libexec/mob.plist /mnt1/usr/libexec/mobileactivationd'
+            sleep 1
+            remote_cmd 'rm -v /mnt1/usr/libexec/mob.plist'
+            sleep 1
             remote_cmd "/sbin/newfs_apfs -A -D -o role=r -v System /dev/disk0s1" && {
             sleep 2
             remote_cmd "/sbin/mount_apfs /dev/$fs /mnt8"
@@ -705,6 +717,8 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
             remote_cmd "/bin/cp -rf $tipsdir/* /mnt8/Applications/Setup.app/"
             sleep 1
             remote_cmd "/bin/mv /mnt8/Applications/Setup.app/Tips /mnt8/Applications/Setup.app/Setup"
+            sleep 1
+            remote_cmd '/usr/sbin/nvram allow-root-hash-mismatch=1'
         fi
     fi
 
