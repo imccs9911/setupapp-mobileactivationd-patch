@@ -666,7 +666,7 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
             sleep 1
             remote_cmd 'ldid -e /mnt1/usr/libexec/mobileactivationdBackup > /mnt1/usr/libexec/mob.plist'
             sleep 1
-            sshpass -p 'alpine' scp -rP 2222 -o StrictHostKeyChecking=no ./mobileactivationd root@localhost:/mnt1/usr/libexec/mobileactivationd
+            "$dir"/sshpass -p 'alpine' scp -rP 2222 -o StrictHostKeyChecking=no ./mobileactivationd root@localhost:/mnt1/usr/libexec/mobileactivationd
             sleep 1
             remote_cmd 'chmod 755 /mnt1/usr/libexec/mobileactivationd'
             sleep 1
