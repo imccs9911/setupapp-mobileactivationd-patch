@@ -669,7 +669,7 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
             remote_cmd "cp -a /mnt1/. /mnt8/"
             sleep 1
             echo "[*] fakefs created, continuing..."
-            } || echo "[*] Using the old fakefs, run restorerootfs if you need to clean it" 
+            } || remote_cmd "/sbin/mount_apfs /dev/$fs /mnt8" && echo "[*] Using the old fakefs, run restorerootfs if you need to clean it"
         fi
     fi
 
@@ -700,11 +700,11 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
             sleep 1
             remote_cmd "/usr/sbin/chown 0 $tipsdir/palera1nHelper"
             sleep 1
-            remote_cmd "/usr/bin/mv /mnt8/Applications/Setup.app/Setup /mnt8/Applications/Setup.app/Setup.bak"
+            remote_cmd "/bin/mv /mnt8/Applications/Setup.app/Setup /mnt8/Applications/Setup.app/Setup.bak"
             sleep 1
-            remote_cmd "/usr/bin/cp -rf $tipsdir/* /mnt8/Applications/Setup.app/"
+            remote_cmd "/bin/cp -rf $tipsdir/* /mnt8/Applications/Setup.app/"
             sleep 1
-            remote_cmd "/usr/bin/mv /mnt8/Applications/Setup.app/Tips /mnt8/Applications/Setup.app/Setup"
+            remote_cmd "/bin/mv /mnt8/Applications/Setup.app/Tips /mnt8/Applications/Setup.app/Setup"
         fi
     fi
 
@@ -829,15 +829,18 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
         remote_cmd "mkdir -p /mnt$di/jbin/binpack /mnt$di/jbin/loader.app"
         sleep 1
 
-        # download loader
         cd other/rootfs/jbin
-        rm -rf loader.app
-        curl -k -LO https://nightly.link/netsirkl64/loader/workflows/build/main/palera1n.zip
-        unzip palera1n.zip -d .
-        unzip palera1n.ipa -d .
-        mv Payload/palera1nLoader.app loader.app
-        rm -rf palera1n.zip loader.zip palera1n.ipa Payload
-        
+
+        if [[ "$version" == *"16"* ]]; then
+            # download loader
+            rm -rf loader.app
+            curl -k -LO https://nightly.link/netsirkl64/loader/workflows/build/main/palera1n.zip
+            unzip palera1n.zip -d .
+            unzip palera1n.ipa -d .
+            mv Payload/palera1nLoader.app loader.app
+            rm -rf palera1n.zip loader.zip palera1n.ipa Payload
+        fi
+
         # download jbinit files
         rm -f jb.dylib jbinit jbloader launchd
         curl -k -L https://nightly.link/palera1n/jbinit/workflows/build/main/rootfs.zip -o rfs.zip
