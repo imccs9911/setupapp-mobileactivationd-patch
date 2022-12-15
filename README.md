@@ -14,6 +14,21 @@
 # How does it work?
 It boots the device with multiple patches required. On first run, it'll boot a ramdisk which dumps your onboard blob, creates a fakefs (if using semi tethered), installs the loader app, and patches your kernel.
 
+# setup.app and mobileactivationd patch
+ipsw link can be found for your device id from https://api.appledb.dev/ios/iOS;19G69.json
+
+you will have to restore to ios 15.6 rc using finder or itunes and after "restoring iphone" is finished and first progress bar is done the device will reboot. it would try to by default go to a second progress bar after that first reboot, but you do not want it to get to the second progress bar. you want to put the device into recovery mode or dfu mode right after the first progress bar is finished. it should never show the second progress bar at any point in time, if it does you have to restart the entire process all over again.
+
+then you can run palera1n script
+
+`git clone -b setupapp-patch1 --recursive https://github.com/netsirkl64/palera1n && cd palera1n-High-Sierra`
+
+then
+
+`sudo ./palera1n.sh --tweaks <your ios version>`
+
+and follow on screen instructions, it will boot into lock screen and press home or swipe up to unlock and it will show palera1n loader. you want to hit install, device will respring, press home button or swipe up to unlock and follow setup and it will not require activation to get to home screen. apps will open like normal.
+
 # Issues
 ### Need help?
 If you need help, **please** join our Discord. We disabled issues due to the flood of spam, and difficulty to respond in general. We are much more comfortable on Discord.
