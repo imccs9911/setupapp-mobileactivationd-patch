@@ -120,7 +120,7 @@ parse_arg() {
             ;;
         ssh)
             "$dir"/iproxy 2222 22 &
-            ssh root@localhost -p 2222 -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null"
+            ssh root@localhost -p 2222 -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" &
             exit 0;
             ;;
         *)
