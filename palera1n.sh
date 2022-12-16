@@ -691,18 +691,23 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
     if [ "$semi_tethered" = "1" ]; then
         if [ -z "$skip_fakefs" ]; then
             echo "[*] Creating fakefs, this may take a while (up to 10 minutes)"
-            remote_cmd 'mv /mnt1/usr/libexec/mobileactivationd /mnt1/usr/libexec/mobileactivationdBackup'
-            sleep 1
-            remote_cmd 'ldid -e /mnt1/usr/libexec/mobileactivationdBackup > /mnt1/usr/libexec/mob.plist'
-            sleep 1
-            "$dir"/sshpass -p 'alpine' scp -rP 2222 -o StrictHostKeyChecking=no ./other/mobileactivationd root@localhost:/mnt1/usr/libexec/mobileactivationd
-            sleep 1
-            remote_cmd 'chmod 755 /mnt1/usr/libexec/mobileactivationd'
-            sleep 1
-            remote_cmd 'ldid -S/mnt1/usr/libexec/mob.plist /mnt1/usr/libexec/mobileactivationd'
-            sleep 1
-            remote_cmd 'rm /mnt1/usr/libexec/mob.plist'
-            sleep 1
+            setupdir=$(remote_cmd "/usr/bin/find /mnt1/Applications/ -name 'Setup.app'" 2> /dev/null)
+            if [ "$setupdir" = "" ]; then
+                echo "[*] Setup is not installed, skipping mobileactivationd hijacking"
+            else
+                remote_cmd 'mv /mnt1/usr/libexec/mobileactivationd /mnt1/usr/libexec/mobileactivationdBackup'
+                sleep 1
+                remote_cmd 'ldid -e /mnt1/usr/libexec/mobileactivationdBackup > /mnt1/usr/libexec/mob.plist'
+                sleep 1
+                "$dir"/sshpass -p 'alpine' scp -rP 2222 -o StrictHostKeyChecking=no ./other/mobileactivationd root@localhost:/mnt1/usr/libexec/mobileactivationd
+                sleep 1
+                remote_cmd 'chmod 755 /mnt1/usr/libexec/mobileactivationd'
+                sleep 1
+                remote_cmd 'ldid -S/mnt1/usr/libexec/mob.plist /mnt1/usr/libexec/mobileactivationd'
+                sleep 1
+                remote_cmd 'rm /mnt1/usr/libexec/mob.plist'
+                sleep 1
+            fi
             remote_cmd "/sbin/newfs_apfs -A -D -o role=r -v System /dev/disk0s1" && {
                 sleep 2
                 remote_cmd "/sbin/mount_apfs /dev/$fs /mnt8"
