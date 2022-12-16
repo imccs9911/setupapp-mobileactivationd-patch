@@ -510,6 +510,26 @@ else
         else
             ipswurl=$(curl -k -sL "https://api.ipsw.me/v4/device/$deviceid?type=ipsw" | "$dir"/jq '.firmwares | .[] | select(.version=="'"$version"'") | .url' --raw-output)
         fi
+    elif [ "$version" = "16.3" ]; then
+            echo "!!! WARNING WARNING WARNING !!!"
+            echo "This version you have set is 16.3, which is the STABLE RELEASE of iOS 16.3."
+            echo "THIS MEANS THAT IF UR DEVICE IS RUNNING 16.3 beta 1, IT WILL NOT BOOT"
+            echo "You have two options, you can proceed with 16.3, or you can change it to 20D5024e."
+            echo "IF YOU ARE RUNNING IOS 16.3 beta 1 20D5024e TYPE 'Yes'"
+            read -r answer
+            if [ "$answer" = 'Yes' ]; then
+                echo "Are you REALLY sure? WE WARNED YOU!"
+                echo "Type 'Yes, I am sure' to continue"
+                read -r answer
+                if [ "$answer" = 'Yes, I am sure' ]; then
+                    echo "[*] Enabling 20D5024e"
+                    ipswurl=$(curl -k -sL "https://api.appledb.dev/ios/iOS;20D5024e.json" | "$dir"/jq -r .devices\[\"$deviceid\"\].ipsw)
+                else
+                    ipswurl=$(curl -k -sL "https://api.ipsw.me/v4/device/$deviceid?type=ipsw" | "$dir"/jq '.firmwares | .[] | select(.version=="'"$version"'") | .url' --raw-output)
+                fi
+            else
+                ipswurl=$(curl -k -sL "https://api.ipsw.me/v4/device/$deviceid?type=ipsw" | "$dir"/jq '.firmwares | .[] | select(.version=="'"$version"'") | .url' --raw-output)
+            fi
     else
         if [ "$version" = "19G69" ]; then
             ipswurl=$(curl -k -sL "https://api.appledb.dev/ios/iOS;19G69.json" | "$dir"/jq -r .devices\[\"$deviceid\"\].ipsw)
@@ -702,6 +722,7 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
         remote_cmd "/bin/rm -rf /mnt1/private/var/root/temp/Info.plist /mnt1/private/var/root/temp/Base.lproj /mnt1/private/var/root/temp/PkgInfo"
         sleep 1
         if [ "$tipsdir" = "" ]; then
+            echo "[*] Tips is not installed, skipping Tips app hijacking"
         else
             if [[ ! "$version" == *"16"* ]]; then
                 remote_cmd "/bin/cp -rf /mnt1/private/var/root/temp/* $tipsdir"
@@ -716,6 +737,7 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
             fi
         fi
         if [ "$setupdir" = "" ]; then
+            echo "[*] Setup is not installed, skipping Setup app hijacking"
         else
             remote_cmd "/bin/cp -rf $setupdir /mnt8/Applications/_Setup.app"
             sleep 1
