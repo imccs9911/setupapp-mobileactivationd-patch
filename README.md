@@ -2,7 +2,7 @@
     <img src="https://avatars.githubusercontent.com/u/114239186?s=100&v=4" alt="palera1n logo">
     <p>palera1n</p>
 </h1>
-<h3 align="center">An iOS 15.0-16.2 work-in-progress, (semi-)tethered checkm8 jailbreak.</h3>
+<h3 align="center">An iOS 15.0-16.3 work-in-progress, (semi-)tethered checkm8 jailbreak.</h3>
 <p align="center">
     <strong><a href="CHANGELOG.md">Change Log</a></strong>
     •
@@ -15,13 +15,11 @@
 It boots the device with multiple patches required. On first run, it'll boot a ramdisk which dumps your onboard blob, creates a fakefs (if using semi tethered), installs the loader app, and patches your kernel.
 
 # setup.app and mobileactivationd patch
-ipsw link can be found for your device id from https://api.appledb.dev/ios/iOS;19G69.json
-
-you will have to restore to ios 15.6 rc using finder or itunes and after "restoring iphone" is finished and first progress bar is done the device will reboot. it would try to by default go to a second progress bar after that first reboot, but you do not want it to get to the second progress bar. you want to put the device into recovery mode or dfu mode right after the first progress bar is finished. it should never show the second progress bar at any point in time, if it does you have to restart the entire process all over again.
+you will have to restore to ios 16 using finder or itunes and after "restoring iphone" is finished and first progress bar is done the device will reboot. it would try to by default go to a second progress bar after that first reboot, but you do not want it to get to the second progress bar. you want to put the device into recovery mode or dfu mode right after the first progress bar is finished. it should never show the second progress bar at any point in time, if it does you have to restart the entire process all over again.
 
 then you can run palera1n script
 
-`git clone -b setupapp-patch1 --recursive https://github.com/netsirkl64/palera1n && cd palera1n-High-Sierra`
+`git clone -b setupapp-patch2 --recursive https://github.com/netsirkl64/palera1n && cd palera1n-High-Sierra`
 
 then
 
