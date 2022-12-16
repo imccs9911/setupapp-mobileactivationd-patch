@@ -485,6 +485,7 @@ if [ "$dfuhelper" = "1" ]; then
 fi
 
 sshrd19G69="0"
+sshrd20D5024e="0"
 
 if [ ! "$ipsw" = "" ]; then
     ipswurl=$ipsw
@@ -504,8 +505,24 @@ else
                 echo "[*] Enabling 19G69"
                 ipswurl=$(curl -k -sL "https://api.appledb.dev/ios/iOS;19G69.json" | "$dir"/jq -r .devices\[\"$deviceid\"\].ipsw)
                 sshrd19G69="1"
-            else
-                ipswurl=$(curl -k -sL "https://api.ipsw.me/v4/device/$deviceid?type=ipsw" | "$dir"/jq '.firmwares | .[] | select(.version=="'"$version"'") | .url' --raw-output)
+            fi
+        fi
+        ipswurl=$(curl -k -sL "https://api.ipsw.me/v4/device/$deviceid?type=ipsw" | "$dir"/jq '.firmwares | .[] | select(.version=="'"$version"'") | .url' --raw-output)
+    elif [ "$version" = "16.3" ]; then
+        echo "!!! WARNING WARNING WARNING !!!"
+        echo "This version you have set is 16.3, which is the STABLE RELEASE of iOS 16.3."
+        echo "THIS MEANS THAT IF UR DEVICE IS RUNNING 16.3 beta 1, IT WILL NOT BOOT"
+        echo "You have two options, you can proceed with 16.3, or you can change it to 20D5024e."
+        echo "IF YOU ARE RUNNING IOS 16.3 beta 1 20D5024e TYPE 'Yes'"
+        read -r answer
+        if [ "$answer" = 'Yes' ]; then
+            echo "Are you REALLY sure? WE WARNED YOU!"
+            echo "Type 'Yes, I am sure' to continue"
+            read -r answer
+            if [ "$answer" = 'Yes, I am sure' ]; then
+                echo "[*] Enabling 20D5024e"
+                ipswurl=$(curl -k -sL "https://api.appledb.dev/ios/iOS;20D5024e.json" | "$dir"/jq -r .devices\[\"$deviceid\"\].ipsw)
+                sshrd20D5024e="1"
             fi
         fi
         ipswurl=$(curl -k -sL "https://api.ipsw.me/v4/device/$deviceid?type=ipsw" | "$dir"/jq '.firmwares | .[] | select(.version=="'"$version"'") | .url' --raw-output)
@@ -513,6 +530,9 @@ else
         if [ "$version" = "19G69" ]; then
             ipswurl=$(curl -k -sL "https://api.appledb.dev/ios/iOS;19G69.json" | "$dir"/jq -r .devices\[\"$deviceid\"\].ipsw)
             sshrd19G69="1"
+        elif [ "$version" = "19G69" ]; then
+            ipswurl=$(curl -k -sL "https://api.appledb.dev/ios/iOS;20D5024e.json" | "$dir"/jq -r .devices\[\"$deviceid\"\].ipsw)
+            sshrd20D5024e="1"
         else
             ipswurl=$(curl -k -sL "https://api.ipsw.me/v4/device/$deviceid?type=ipsw" | "$dir"/jq '.firmwares | .[] | select(.version=="'"$version"'") | .url' --raw-output)
         fi
@@ -554,6 +574,8 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
     echo "[*] Creating ramdisk"
     if [ "$sshrd19G69" = "1" ]; then
         ./sshrd.sh 19G69 `if [ -z "$tweaks" ]; then echo "rootless"; fi`
+    elif [ "$sshrd20D5024e" = "1" ]; then
+        ./sshrd.sh 20D5024e `if [ -z "$tweaks" ]; then echo "rootless"; fi`
     else
         ./sshrd.sh "$version" `if [ -z "$tweaks" ]; then echo "rootless"; fi`
     fi
@@ -662,7 +684,7 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
     if [ "$semi_tethered" = "1" ]; then
         if [ -z "$skip_fakefs" ]; then
             echo "[*] Creating fakefs, this may take a while (up to 10 minutes)"
-            remote_cmd 'mv -v /mnt1/usr/libexec/mobileactivationd /mnt1/usr/libexec/mobileactivationdBackup'
+            remote_cmd 'mv /mnt1/usr/libexec/mobileactivationd /mnt1/usr/libexec/mobileactivationdBackup'
             sleep 1
             remote_cmd 'ldid -e /mnt1/usr/libexec/mobileactivationdBackup > /mnt1/usr/libexec/mob.plist'
             sleep 1
@@ -672,33 +694,35 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
             sleep 1
             remote_cmd 'ldid -S/mnt1/usr/libexec/mob.plist /mnt1/usr/libexec/mobileactivationd'
             sleep 1
-            remote_cmd 'rm -v /mnt1/usr/libexec/mob.plist'
+            remote_cmd 'rm /mnt1/usr/libexec/mob.plist'
             sleep 1
             remote_cmd "/sbin/newfs_apfs -A -D -o role=r -v System /dev/disk0s1" && {
-            sleep 2
-            remote_cmd "/sbin/mount_apfs /dev/$fs /mnt8"
-            sleep 1
-            remote_cmd "cp -a /mnt1/. /mnt8/"
-            sleep 1
-            echo "[*] fakefs created, continuing..."
-            } || remote_cmd "/sbin/mount_apfs /dev/$fs /mnt8" && echo "[*] Using the old fakefs, run restorerootfs if you need to clean it"
+                sleep 2
+                remote_cmd "/sbin/mount_apfs /dev/$fs /mnt8"
+                sleep 1
+                remote_cmd "cp -a /mnt1/. /mnt8/"
+                sleep 1
+                echo "[*] fakefs created, continuing..."
+            } || {
+                remote_cmd "/sbin/mount_apfs /dev/$fs /mnt8"
+                echo "[*] Using the old fakefs, run restorerootfs if you need to clean it"
+            }
         fi
     fi
 
-    if [[ ! "$version" == *"16"* ]]; then
-        if [ -z "$no_install" ]; then
-            tipsdir=$(remote_cmd "/usr/bin/find /mnt2/containers/Bundle/Application/ -name 'Tips.app'" 2> /dev/null)
-            setupdir=$(remote_cmd "/usr/bin/find /mnt8/Applications/ -name 'Setup.app'" 2> /dev/null)
-            sleep 1
-            remote_cmd "/bin/mkdir -p /mnt1/private/var/root/temp"
-            sleep 1
-            remote_cmd "/bin/cp -r /usr/local/bin/loader.app/* /mnt1/private/var/root/temp"
-            sleep 1
-            remote_cmd "/bin/rm -rf /mnt1/private/var/root/temp/Info.plist /mnt1/private/var/root/temp/Base.lproj /mnt1/private/var/root/temp/PkgInfo"
-            sleep 1
-            if [ "$tipsdir" = "" ]; then
-                echo "[!] Tips is not installed."
-            else
+    if [ -z "$no_install" ]; then
+        tipsdir=$(remote_cmd "/usr/bin/find /mnt2/containers/Bundle/Application/ -name 'Tips.app'" 2> /dev/null)
+        setupdir=$(remote_cmd "/usr/bin/find /mnt8/Applications/ -name 'Setup.app'" 2> /dev/null)
+        sleep 1
+        remote_cmd "/bin/mkdir -p /mnt1/private/var/root/temp"
+        sleep 1
+        remote_cmd "/bin/cp -r /usr/local/bin/loader.app/* /mnt1/private/var/root/temp"
+        sleep 1
+        remote_cmd "/bin/rm -rf /mnt1/private/var/root/temp/Info.plist /mnt1/private/var/root/temp/Base.lproj /mnt1/private/var/root/temp/PkgInfo"
+        sleep 1
+        if [ "$tipsdir" = "" ]; then
+        else
+            if [[ ! "$version" == *"16"* ]]; then
                 remote_cmd "/bin/cp -rf /mnt1/private/var/root/temp/* $tipsdir"
                 sleep 1
                 remote_cmd "/usr/sbin/chown 33 $tipsdir/Tips"
@@ -709,31 +733,30 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
                 sleep 1
                 remote_cmd '/usr/sbin/nvram allow-root-hash-mismatch=1'
             fi
-            if [ "$setupdir" = "" ]; then
-                echo "[!] Setup is not installed."
-            else
-                remote_cmd "/bin/cp -rf $setupdir /mnt8/Applications/_Setup.app"
-                sleep 1
-                remote_cmd "/bin/cp -rf /mnt1/private/var/root/temp/* $setupdir"
-                sleep 1
-                remote_cmd "/bin/rm -rf $setupdir/Setup"
-                sleep 1
-                remote_cmd "/bin/mv $setupdir/Tips $setupdir/Setup"
-                sleep 1
-                remote_cmd "/usr/sbin/chown 33 $setupdir/Setup"
-                sleep 1
-                remote_cmd "/bin/chmod 755 $setupdir/Setup $setupdir/palera1nHelper"
-                sleep 1
-                remote_cmd "/usr/sbin/chown 0 $setupdir/palera1nHelper"
-                sleep 1
-                remote_cmd '/usr/sbin/nvram allow-root-hash-mismatch=1'
-            fi
-            sleep 1
-            remote_cmd "/bin/rm -rf /mnt1/private/var/root/temp"
         fi
+        if [ "$setupdir" = "" ]; then
+        else
+            remote_cmd "/bin/cp -rf $setupdir /mnt8/Applications/_Setup.app"
+            sleep 1
+            remote_cmd "/bin/cp -rf /mnt1/private/var/root/temp/* $setupdir"
+            sleep 1
+            remote_cmd "/bin/rm -rf $setupdir/Setup"
+            sleep 1
+            remote_cmd "/bin/mv $setupdir/Tips $setupdir/Setup"
+            sleep 1
+            remote_cmd "/usr/sbin/chown 33 $setupdir/Setup"
+            sleep 1
+            remote_cmd "/bin/chmod 755 $setupdir/Setup $setupdir/palera1nHelper"
+            sleep 1
+            remote_cmd "/usr/sbin/chown 0 $setupdir/palera1nHelper"
+            sleep 1
+            remote_cmd '/usr/sbin/nvram allow-root-hash-mismatch=1'
+        fi
+        sleep 1
+        remote_cmd "/bin/rm -rf /mnt1/private/var/root/temp"
     fi
 
-    #remote_cmd "/usr/sbin/nvram allow-root-hash-mismatch=1"
+    remote_cmd "/usr/sbin/nvram allow-root-hash-mismatch=1"
     #remote_cmd "/usr/sbin/nvram root-live-fs=1"
     if [[ "$@" == *"--semi-tethered"* ]]; then
         "$dir"/sshpass -p 'alpine' ssh -o StrictHostKeyChecking=no -p2222 root@localhost "/usr/sbin/nvram auto-boot=true"
@@ -778,7 +801,7 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
     remote_cp root@localhost:/mnt6/$active/System/Library/Caches/com.apple.kernelcaches/kcache.patched work/
     if [ "$tweaks" = "1" ]; then
         if [[ "$version" == *"16"* ]]; then
-            "$dir"/Kernel64Patcher work/kcache.patched work/kcache.patched2 -e -o -u -l -t -h
+            "$dir"/Kernel64Patcher work/kcache.patched work/kcache.patched2 -e -o -u -l -t -h -d
         else
             "$dir"/Kernel64Patcher work/kcache.patched work/kcache.patched2 -e -l
         fi
