@@ -43,12 +43,13 @@ step() {
 print_help() {
     cat << EOF
 Usage: $0 [Options] [ subcommand | iOS version ]
-iOS 15.0-16.2 jailbreak tool for checkm8 devices
+iOS 15.0-16.3 jailbreak tool for checkm8 devices
 
 Options:
     --help              Print this help
     --tweaks            Enable tweaks
     --semi-tethered     When used with --tweaks, make the jailbreak semi-tethered instead of tethered
+    --ssh               Tries to connect to ssh over usb interface to the connected device
     --dfuhelper         A helper to help get A11 devices into DFU mode from recovery mode
     --skip-fakefs       Don't create the fakefs even if --semi-tethered is specified
     --no-baseband       Indicate that the device does not have a baseband
@@ -116,6 +117,11 @@ parse_arg() {
             ;;
         clean)
             clean=1
+            ;;
+        ssh)
+            "$dir"/iproxy 2222 22 &
+            ssh root@localhost -p 2222 -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null"
+            exit 0;
             ;;
         *)
             version="$1"
