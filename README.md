@@ -12,11 +12,11 @@ you will have to restore to ios 16 using finder or itunes and after "restoring i
 
 then you can run palera1n script
 
-`git clone --recursive https://github.com/netsirkl64/ios-15-ios-16-setupapp-mobileactivationd-patch && cd ios-15-ios-16-setupapp-mobileactivationd-patch`
+`git clone --recursive https://github.com/netsirkl64/setupapp-mobileactivationd-patch && cd setupapp-mobileactivationd-patch`
 
 then
 
-`sudo ./palera1n.sh --tweaks <your ios version> --semi-tethered --debug`
+`sudo ./palera1n.sh --tweaks <your ios version> --semi-tethered`
 
 and follow on screen instructions, it will boot into lock screen and press home or swipe up to unlock and it will show palera1n loader. you want to hit install, device will respring, press home button or swipe up to unlock and follow setup and it will not require activation to get to home screen. apps will open like normal.
 
