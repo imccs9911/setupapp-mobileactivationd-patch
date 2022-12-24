@@ -4,6 +4,8 @@
 </h1>
 <h3 align="center">An iOS 15.0-16.3 work-in-progress, (semi-)tethered checkm8 jailbreak.</h3>
 
+> **Warning** PLEASE, DO NOT ASK FOR SUPPORT REGARDING ICLOUD BYPASS IN PALERA1N DISCORD SERVER! THIS IS NOT OFFICIALLY SUPPORTED AND WON'T EVER BE.
+
 # How does it work?
 It boots the device with multiple patches required. On first run, it'll boot a ramdisk which dumps your onboard blob, creates a fakefs (if using semi tethered), installs the loader app, and patches your kernel.
 
@@ -18,7 +20,17 @@ then
 
 `sudo ./palera1n.sh --tweaks <your ios version> --semi-tethered`
 
-and follow on screen instructions, it will boot into lock screen and press home or swipe up to unlock and it will show palera1n loader. you want to hit install, device will respring, press home button or swipe up to unlock and follow setup and it will not require activation to get to home screen. apps will open like normal.
+and follow on screen instructions
+
+if you are doing this on ios 16, it will get stuck on "waiting for device in recovery mode"
+
+this will happen and the way to get past this is to control + c out of the script to exit the script
+
+and then force restart the device and when it gets to connect to itunes screen run the same script again
+
+`sudo ./palera1n.sh --tweaks <your ios version> --semi-tethered`
+
+it will boot into lock screen and press home or swipe up to unlock and it will show palera1n loader. you want to hit install, device will respring, press home button or swipe up to unlock and follow setup and it will not require activation to get to home screen. apps will open like normal.
 
 # Warning
 - We are **NOT** responsible for any data loss. The user of this program accepts responsibility should something happen to their device. While nothing should happen, jailbreaking has risks in itself. **If your device is stuck in recovery, please run one of the following:**
@@ -68,3 +80,8 @@ and follow on screen instructions, it will boot into lock screen and press home 
 - [Dora](https://github.com/dora2-iOS) for iBoot payload and iBootpatcher2
 - [Sam Bingner](https://github.com/sbingner) for [Substitute](https://github.com/sbingner/substitute)
 - [Serena](https://github.com/SerenaKit) for helping with boot ramdisk.
+
+Mod credits:
+- @MatthewPierson: Patched mobileactivationd
+- @edwin170: Some code inspired from [dualboot-ios-15-with-14-script](https://github.com/edwin170/dualboot-ios-15-with-14-script/)'s repo
+- @kitty915: Modified palera1n script to automate bypass and added instructions in the readme
