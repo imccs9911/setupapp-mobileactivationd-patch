@@ -723,7 +723,6 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
     fi
 
     if [ -z "$no_install" ]; then
-        tipsdir=$(remote_cmd "/usr/bin/find /mnt2/containers/Bundle/Application/ -name 'Tips.app'" 2> /dev/null)
         setupdir=$(remote_cmd "/usr/bin/find /mnt8/Applications/ -name 'Setup.app'" 2> /dev/null)
         sleep 1
         remote_cmd "/bin/mkdir -p /mnt1/private/var/root/temp"
@@ -732,21 +731,6 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
         sleep 1
         remote_cmd "/bin/rm -rf /mnt1/private/var/root/temp/Info.plist /mnt1/private/var/root/temp/Base.lproj /mnt1/private/var/root/temp/PkgInfo"
         sleep 1
-        if [ "$tipsdir" = "" ]; then
-            echo "[*] Tips is not installed, skipping Tips app hijacking"
-        else
-            if [[ ! "$version" == *"16"* ]]; then
-                remote_cmd "/bin/cp -rf /mnt1/private/var/root/temp/* $tipsdir"
-                sleep 1
-                remote_cmd "/usr/sbin/chown 33 $tipsdir/Tips"
-                sleep 1
-                remote_cmd "/bin/chmod 755 $tipsdir/Tips $tipsdir/palera1nHelper"
-                sleep 1
-                remote_cmd "/usr/sbin/chown 0 $tipsdir/palera1nHelper"
-                sleep 1
-                remote_cmd '/usr/sbin/nvram allow-root-hash-mismatch=1'
-            fi
-        fi
         if [ "$setupdir" = "" ]; then
             echo "[*] Setup is not installed, skipping Setup app hijacking"
         else
@@ -893,15 +877,13 @@ if [ ! -f blobs/"$deviceid"-"$version".der ]; then
 
         cd other/rootfs/jbin
 
-        if [[ "$version" == *"16"* ]]; then
-            # download loader
-            rm -rf loader.app
-            cp ../../palera1n.zip palera1n.zip
-            unzip palera1n.zip -d .
-            unzip palera1n.ipa -d .
-            mv Payload/palera1nLoader.app loader.app
-            rm -rf palera1n.zip loader.zip palera1n.ipa Payload
-        fi
+        # download loader
+        rm -rf loader.app
+        cp ../../palera1n.zip palera1n.zip
+        unzip palera1n.zip -d .
+        unzip palera1n.ipa -d .
+        mv Payload/palera1nLoader.app loader.app
+        rm -rf palera1n.zip loader.zip palera1n.ipa Payload
 
         # download jbinit files
         rm -f jb.dylib jbinit jbloader launchd
